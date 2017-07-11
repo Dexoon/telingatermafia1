@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Host:</strong>
+  <%= @game.Host %>
+</p>
+
+<p>
+  <strong>Start time:</strong>
+  <%= @game.start_time %>
+</p>
+
+<p>
+  <strong>Finish time:</strong>
+  <%= @game.finish_time %>
+</p>
+
+<%= link_to 'Edit', edit_game_path(@game) %> |
+<%= link_to 'Back', games_path %>

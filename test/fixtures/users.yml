@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  vk: 1
+  telegram: 1
+  name: MyString
+  surname: MyString
+  online: false
+
+two:
+  vk: 1
+  telegram: 1
+  name: MyString
+  surname: MyString
+  online: false
