@@ -1,6 +1,20 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy]
+  before_action :set_user, only: [:show, :edit, :update, :destroy, :online, :change_status]
 
+  def online
+    respond_to do |format|
+      msg = { online: @user.online }
+      format.json  { render :json => msg } # don't do msg.to_json
+    end
+  end
+
+  def change_status
+    @user.update({ online: !@user.online })
+    respond_to do |format|
+      msg = { online: @user.online }
+      format.json  { render :json => msg } # don't do msg.to_json
+    end
+  end
   # GET /users
   # GET /users.json
   def index
