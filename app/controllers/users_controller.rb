@@ -8,18 +8,18 @@ class UsersController < ApplicationController
   end
 
   def online
-    msg = { online: @user.online }
+    msg = {id: @user.id, online: @user.online }
     render json: msg, status: 200
   end
 
   def name
-    msg = { name: @user.surname + ' ' + @user.name }
+    msg = {id: @user.id, name: @user.surname + ' ' + @user.name }
     render json: msg, status: 200
   end
 
   def change_status
     @user.update(online: !@user.online)
-    msg = { online: @user.online }
+    msg = {id: @user.id, online: @user.online }
     render json: msg, status: 200
   end
 

@@ -1,5 +1,17 @@
 class PlayersController < ApplicationController
   before_action :set_player, only: [:show, :edit, :update, :destroy]
+  before_action :find_player, only: [:set_score, :score]
+
+  def score
+    msg = { id: @player.id , score:  @player.score }
+    render json: msg, status: 200
+  end
+
+  def set_score
+    @player.score = params[:score]
+    msg = { id: @player.id, score:  @player.score }
+    render json: msg, status: 200
+  end
 
   # GET /players
   # GET /players.json
@@ -62,13 +74,31 @@ class PlayersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_player
-      @player = Player.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def player_params
-      params.require(:player).permit(:position, :user_id, :game_id, :score)
+  # Use callbacks to share common setup or constraints between actions.
+  def set_player
+    @player = Player.find(params[:id])
+  end
+
+  def find_player
+    if !params[:id].nil?
+      @player = Player.find(params[:id])
+    elsif !params[:user_id].nil? && !params[:game_id].nil?
+      @player = Player.find_by(user_id: params[:user_id], game_id: params[:game_id])
+    else
+      msg = { error: 'lack of information to find player' }
+      render json: msg, status: 400
+      return
     end
+    if @player.nil?
+      msg = { error: 'player not found' }
+      render json: msg, status: 400
+      return
+    end
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def player_params
+    params.require(:player).permit(:position, :user_id, :game_id, :score)
+  end
 end

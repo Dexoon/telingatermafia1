@@ -1,6 +1,20 @@
 class GamesController < ApplicationController
   before_action :set_game, only: [:show, :edit, :update, :destroy]
 
+  def start_game
+    ids = params[:ids].split(',')
+    if ids.count != 12
+      msg = { error: 'expected 12 players' }
+      render json: msg, status: 400
+      return
+    end
+    @game = Game.new
+    @game.save
+    ids.each { |x| @game.players.create(user_id: x) }
+    msg = { game_id: @game.id,player_ids: @game.players.ids }
+    render json: msg, status: 200
+  end
+
   # GET /games
   # GET /games.json
   def index
@@ -62,13 +76,14 @@ class GamesController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_game
-      @game = Game.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def game_params
-      params.require(:game).permit(:Host_id, :start_time, :finish_time)
-    end
+  # Use callbacks to share common setup or constraints between actions.
+  def set_game
+    @game = Game.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def game_params
+    params.require(:game).permit(:Host_id, :start_time, :finish_time)
+  end
 end
