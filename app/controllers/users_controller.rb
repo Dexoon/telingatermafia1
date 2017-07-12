@@ -1,20 +1,28 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy, :online, :change_status]
+  before_action :set_user, only: [:show, :edit, :update, :destroy]
+  before_action :find_user, only: [:online, :change_status, :name]
+
+  def online_list
+    list=User.where(online:true).ids
+    render json: list, status: 200
+  end
 
   def online
-    respond_to do |format|
-      msg = { online: @user.online }
-      format.json  { render :json => msg } # don't do msg.to_json
-    end
+    msg = { online: @user.online }
+    render json: msg, status: 200
+  end
+
+  def name
+    msg = { name: @user.surname + ' ' + @user.name }
+    render json: msg, status: 200
   end
 
   def change_status
-    @user.update({ online: !@user.online })
-    respond_to do |format|
-      msg = { online: @user.online }
-      format.json  { render :json => msg } # don't do msg.to_json
-    end
+    @user.update(online: !@user.online)
+    msg = { online: @user.online }
+    render json: msg, status: 200
   end
+
   # GET /users
   # GET /users.json
   def index
@@ -76,13 +84,31 @@ class UsersController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_user
-      @user = User.find(params[:id])
-    end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def user_params
-      params.require(:user).permit(:vk, :telegram, :name, :surname, :online)
+  # Use callbacks to share common setup or constraints between actions.
+  def find_user
+    if !params[:id].nil?
+      @user = User.find(params[:id])
+    elsif !params[:telegram].nil?
+      @user = User.find_by(telegram: params[:telegram])
+    elsif !params[:vk].nil?
+      @user = User.find_by(vk: params[:vk])
     end
+    if @user.nil?
+      render json: {
+        error: 'No such user'
+      }, status: 400
+      return
+    end
+    @user
+  end
+
+  def set_user
+    @user = User.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def user_params
+    params.require(:user).permit(:vk, :telegram, :name, :surname, :online)
+  end
 end
