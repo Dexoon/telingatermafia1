@@ -3,12 +3,12 @@ class PlayersController < ApplicationController
   before_action :find_player, only: [:set_score, :score]
 
   def score
-    msg = { id: @player.id , score:  @player.score }
+    msg = { id: @player.id, score:  @player.score }
     render json: msg, status: 200
   end
 
   def set_score
-    @player.score = params[:score]
+    @player.update(score: params[:score])
     msg = { id: @player.id, score:  @player.score }
     render json: msg, status: 200
   end

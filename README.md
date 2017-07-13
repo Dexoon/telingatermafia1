@@ -1,24 +1,54 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Этот сайт написан для работы с базой данных.
 
-Things you may want to cover:
+База данных состоит из 3 таблиц: Users, Games, Players
 
-* Ruby version
+Player необходим того, чтобы в каждой игре у каждого игрока можно было сохранить число очков.
 
-* System dependencies
+API
 
-* Configuration
+* online
+  Принимает на вход один из трёх параметров: id, telegram, vk
+  Выдаёт код 200, id пользователя и его статус, в случае успеха
+  Пример вывода: {"id":2,"online":true}
+  Выдаёт код 400, если пользователя с такими параметрами нет
+  Пример вывода: {"error":"No such user"}
 
-* Database creation
+* change_status
+  Принимает на вход один из трёх параметров: id, telegram, vk
+  Менет статус пользователя, выдаёт код 200, id пользователя и его статус, в случае успеха
+  Пример вывода: {"id":2,"online":true}
+  Выдаёт код 400, если пользователя с такими параметрами нет
+  Пример вывода: {"error":"No such user"}
 
-* Database initialization
+* online_list
+  Принимает на вход один из трёх параметров: id, telegram, vk
+  Выдаёт код 200, и список id пользователей (возможно пустой), у которых значение параметра online: true
+  Примеры вывода: [2,5] ; []
 
-* How to run the test suite
+* start_game
+  Принимает на вход параметр ids - последовательность из id пользователей, через запятую.
+  Пример ввода: ids=2,3,4,5,6,7,8,9,10,11,12,13
+  Выдаёт код 200 id игры, и список id игроков (player'ов), в случае успеха
+  Пример вывода: {"game_id":1,"player_ids":[1,2,3,4,5,6,7,8,9,10,11,12]}
+  Выдаёт код 400, если id на входе не 12.
+  Пример вывода: {"error":"expected 12 players"}
+  ДОПИСАТЬ: Проверку, что все игроки разные и id на входе валидные
 
-* Services (job queues, cache servers, search engines, etc.)
 
-* Deployment instructions
+* set_score
+  Принимает на вход параметры id, либо пару парметров user_id и game_id и параметр score
+  Примеры ввода: id=13&score=2; user_id=5&game_id=1&score=2
+  Выдаёт код 200, id игрока (player'а) и его очки, в случае успеха
+  Пример вывода: {"id":13,"score":2}
+  Выдаёт код 400, в случае, если найти игрока не удалось.
+  Пример вывода: {"error":"player not found"}
 
-* ...
+* score
+  Принимает на вход параметры id, либо пару парметров user_id и game_id
+  Примеры ввода: id=13; user_id=5&game_id=1
+  Выдаёт код 200, id игрока (player'а) и его очки, в случае успеха
+  Пример вывода: {"id":13,"score":2}
+  Выдаёт код 400, в случае, если найти игрока не удалось.
+  Пример вывода: {"error":"player not found"}
