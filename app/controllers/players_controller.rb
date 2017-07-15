@@ -1,6 +1,10 @@
 class PlayersController < ApplicationController
   before_action :set_player, only: [:show, :edit, :update, :destroy]
-  before_action :find_player, only: [:set_score, :score]
+  before_action :find_player, only: [:set_score, :score, :player]
+
+  def player
+    render json: @player, status: 200
+  end
 
   def score
     msg = { id: @player.id, score:  @player.score }

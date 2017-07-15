@@ -1,6 +1,9 @@
 class GamesController < ApplicationController
   before_action :set_game, only: [:show, :edit, :update, :destroy]
 
+def game
+end
+
   def start_game
     ids = params[:ids].split(',')
     if ids.count != 12
@@ -11,7 +14,7 @@ class GamesController < ApplicationController
     @game = Game.new
     @game.save
     ids.each { |x| @game.players.create(user_id: x) }
-    msg = { game_id: @game.id,player_ids: @game.players.ids }
+    msg = { game: @game, player_ids: @game.players.ids }
     render json: msg, status: 200
   end
 

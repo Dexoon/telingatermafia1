@@ -1,26 +1,19 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
-  before_action :find_user, only: [:online, :change_status, :name]
+  before_action :find_user, only: [:change_status, :user]
 
   def online_list
-    list=User.where(online:true).ids
+    list = User.where(online: true)
     render json: list, status: 200
   end
 
-  def online
-    msg = {id: @user.id, online: @user.online }
-    render json: msg, status: 200
-  end
-
-  def name
-    msg = {id: @user.id, name: @user.surname + ' ' + @user.name }
-    render json: msg, status: 200
+  def user
+    render json: @user, status: 200
   end
 
   def change_status
     @user.update(online: !@user.online)
-    msg = {id: @user.id, online: @user.online }
-    render json: msg, status: 200
+    render json: @user, status: 200
   end
 
   # GET /users
