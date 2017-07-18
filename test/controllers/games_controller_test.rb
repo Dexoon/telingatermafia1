@@ -17,7 +17,7 @@ class GamesControllerTest < ActionDispatch::IntegrationTest
 
   test "should create game" do
     assert_difference('Game.count') do
-      post games_url, params: { game: { Host_id: @game.Host_id, finish_time: @game.finish_time, start_time: @game.start_time } }
+      post games_url, params: { game: { finish_time: @game.finish_time, start_time: @game.start_time } }
     end
 
     assert_redirected_to game_url(Game.last)
@@ -34,7 +34,7 @@ class GamesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update game" do
-    patch game_url(@game), params: { game: { Host_id: @game.Host_id, finish_time: @game.finish_time, start_time: @game.start_time } }
+    patch game_url(@game), params: { game: { finish_time: @game.finish_time, start_time: @game.start_time } }
     assert_redirected_to game_url(@game)
   end
 

@@ -81,7 +81,7 @@ class UsersController < ApplicationController
   # Use callbacks to share common setup or constraints between actions.
   def find_user
     if !params[:id].nil?
-      @user = User.find(params[:id])
+      @user = User.find_by_id(params[:id])
     elsif !params[:telegram].nil?
       @user = User.find_by(telegram: params[:telegram])
     elsif !params[:vk].nil?
