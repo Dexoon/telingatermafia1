@@ -1,9 +1,9 @@
-task start: :environment do
+task bot: :environment do
   # BACKGROUND=y PIDFILE=daemon.pid LOG_LEVEL=info bundle exec rake start
   Rails.logger       = Logger.new(Rails.root.join('log', 'daemon.log'))
   Rails.logger.level = Logger.const_get((ENV['LOG_LEVEL'] || 'info').upcase)
   user_bot = TelegramBot.new(token: '315066645:AAGd2SdpVLnTPNgoC8CQKVBdFIubDGqriC4')
-  vk_api = VkontakteApi::Client.new
+  @vk_api = VkontakteApi::Client.new
   Process.daemon(true, true) if ENV['BACKGROUND']
 
   File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid } if ENV['PIDFILE']
@@ -18,7 +18,8 @@ task start: :environment do
       if message.forward_from.nil?
         if /vk.com/.match(message.text)
           vk_address = /\/.*$/.match(/vk\.com\/\w+/.match(message.text)[0])[0][1..-1]
-          vk_res = vk_api.users.get(users_ids: vk_address)
+          vk_res = @vk_api.users.get(user_ids: vk_address)
+          puts ( vk_res.count)
           if vk_res.count.zero?
             @user = nil
           else
