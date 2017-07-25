@@ -25,5 +25,15 @@
   <%= @user.online %>
 </p>
 
+<p>
+  <strong>Pending fouls:</strong>
+  <%= @user.pending_fouls %>
+</p>
+
+<p>
+  <strong>Newbie:</strong>
+  <%= @user.newbie %>
+</p>
+
 <%= link_to 'Edit', edit_user_path(@user) %> |
 <%= link_to 'Back', users_path %>

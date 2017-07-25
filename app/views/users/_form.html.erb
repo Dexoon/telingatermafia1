@@ -36,6 +36,16 @@
     <%= form.check_box :online, id: :user_online %>
   </div>
 
+  <div class="field">
+    <%= form.label :pending_fouls %>
+    <%= form.number_field :pending_fouls, id: :user_pending_fouls %>
+  </div>
+
+  <div class="field">
+    <%= form.label :newbie %>
+    <%= form.check_box :newbie, id: :user_newbie %>
+  </div>
+
   <div class="actions">
     <%= form.submit %>
   </div>

@@ -1,19 +1,19 @@
 class PlayersController < ApplicationController
-  before_action :set_player, only: [:show, :edit, :update, :destroy]
-  before_action :find_player, only: [:set_score, :score, :player]
+  before_action :set_player, only: %i[show edit update destroy]
+  before_action :find_player, only: %i[set_score score player]
 
   def player
     render json: @player, status: 200
   end
 
   def score
-    msg = { id: @player.id, score:  @player.score }
+    msg = { id: @player.id, score: @player.score }
     render json: msg, status: 200
   end
 
   def set_score
     @player.update(score: params[:score])
-    msg = { id: @player.id, score:  @player.score }
+    msg = { id: @player.id, score: @player.score }
     render json: msg, status: 200
   end
 
@@ -25,8 +25,7 @@ class PlayersController < ApplicationController
 
   # GET /players/1
   # GET /players/1.json
-  def show
-  end
+  def show; end
 
   # GET /players/new
   def new
@@ -34,14 +33,12 @@ class PlayersController < ApplicationController
   end
 
   # GET /players/1/edit
-  def edit
-  end
+  def edit; end
 
   # POST /players
   # POST /players.json
   def create
     @player = Player.new(player_params)
-
     respond_to do |format|
       if @player.save
         format.html { redirect_to @player, notice: 'Player was successfully created.' }

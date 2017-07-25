@@ -10,6 +10,8 @@
       <th>Name</th>
       <th>Surname</th>
       <th>Online</th>
+      <th>Pending fouls</th>
+      <th>Newbie</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -22,6 +24,8 @@
         <td><%= user.name %></td>
         <td><%= user.surname %></td>
         <td><%= user.online %></td>
+        <td><%= user.pending_fouls %></td>
+        <td><%= user.newbie %></td>
         <td><%= link_to 'Show', user %></td>
         <td><%= link_to 'Edit', edit_user_path(user) %></td>
         <td><%= link_to 'Destroy', user, method: :delete, data: { confirm: 'Are you sure?' } %></td>

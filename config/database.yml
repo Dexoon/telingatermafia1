@@ -17,17 +17,18 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: horton.elephantsql.com
-  database: tkidfgvg
-  username: tkidfgvg
-  password: 'JitFbj8RuBmCnqNSiUbwc8MCdOImYRrU'
+  #host: horton.elephantsql.com
+  #database: tkidfgvg
+  #username: tkidfgvg
+  #password: 'JitFbj8RuBmCnqNSiUbwc8MCdOImYRrU'
   # For details on connection pooling, see Rails configuration guide
   # http://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 development:
   <<: *default
-  database: tkidfgvg
+  database: telingater_mafia_bot_development
+  #database: tkidfgvg
 
   # The specified database role being used to connect to postgres.
   # To create additional roles in postgres see `$ createuser --help`.
