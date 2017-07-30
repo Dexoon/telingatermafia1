@@ -11,25 +11,83 @@ class Game < ApplicationRecord
     state :settings, initial: true
     state :select_players
     state :game
-    state :count_result
+    state :set_result
+    state :set_score
     state :game_over
     event :next do
-      transitions from: :settings,to: :select_players
-      transitions from: :select_players, to: :game, after => :set_pending_fouls
-      transitions from: :game, to: :count_result
-      transitions from: :count_result, to: :game_over
+      transitions from: :settings, to: :select_players
+      transitions from: :select_players, to: :game, after: :set_pending_fouls
+      transitions from: :game, to: :set_result
+      transitions from: :set_result, to: :set_score
+      transitions from: :set_score, to: :game_over
+    end
+    event :back do
+      transitions from: :select_players, to: :settings
+      transitions from: :game, to: :select_players, after: :fous_to_pending
+      transitions from: :set_result, to: :game
+      transitions from: :set_score, to: :set_result
+      transitions from: :game_over, to: :set_score
     end
   end
 
+  def to_s(options = {})
+    options.reverse_merge!(
+      'players' => true,
+      'day' => true,
+      'day_format' => :short,
+      'result' => false,
+      'id' => true,
+      'rating' => true,
+      'order_players' => 'position'
+    )
+    str = ''
+    str += day.to_s(options['day_format']) + "\n" if options['day']
+    str += ' id игры: ' + id.to_s + "\n" if options['id']
+    if options['rating']
+      str += 'Игра '
+      str += 'не ' unless rating
+      str += 'рейтинговая' + "\n"
+    end
+    if options['result']
+      case result
+      when -1
+        str += 'Победила мафия' + "\n"
+      when 0
+        str += 'Ничья' + "\n"
+      when 1
+        str += 'Победили мирные' + "\n"
+      end
+    end
+    if options['players']
+      case options['order_players']
+      when 'score'
+        players.sort_by { |player| - player.score }.each { |player| str += player.to_s(options) + "\n" }
+      else
+        players.order(options['order_players']).each { |player| str += player.to_s(options) + "\n" }
+      end
+    end
+    str
+  end
+
   def set_pending_fouls
-    randomize
     players.each do |player|
       player.add_points('fouls', [player.user.pending_fouls, 3].min)
       player.add_points('pending_fouls', 0 - [player.user.pending_fouls, 3].min)
     end
   end
 
-  def set_rating (value)
+  def fouls_to_pending
+    players.each do |player|
+      player.add_points('pending_fouls', player.fouls)
+      player.update(fouls: 0)
+    end
+  end
+
+  def set_result(value)
+    update(result: value)
+  end
+
+  def set_rating(value)
     update(rating: value)
   end
 
@@ -63,6 +121,6 @@ class Game < ApplicationRecord
   end
 
   def delete_last
-    players.last.delete unless players.count == 0
+    players.last.delete unless players.count.zero?
   end
 end

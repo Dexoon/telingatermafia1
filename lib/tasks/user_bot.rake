@@ -35,7 +35,7 @@ task bot: :environment do
 
       message.reply do |reply|
         if @user.nil?
-          reply.text = 'Пользователь не зарегестрирован. Напишите 0дмену'
+          reply.text = 'Пользователь не зарегестрирован. Напишите Илье, он вас зарегистрирует'
         else
           @user.update(online: !@user.online)
           reply.text = "Обновлено. #{@user.surname} #{@user.name} теперь"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170725165533) do
+ActiveRecord::Schema.define(version: 20170726230154) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -24,6 +24,7 @@ ActiveRecord::Schema.define(version: 20170725165533) do
     t.string "aasm_state"
     t.date "day"
     t.boolean "rating", default: false
+    t.integer "result"
     t.index ["host_id"], name: "index_games_on_host_id"
   end
 

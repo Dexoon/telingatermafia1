@@ -15,8 +15,9 @@ task start: :environment do
 
   @key_list = %w[game_id user_id value position]
   @query_types = {
-    'task' => %w(start_game end_game count_result delete_game delete_last
-      randomize add_player new_game add_points load_game change_rating next),
+    'task' => %w[start_game end_game set_result delete_game delete_last randomize
+                 add_player new_game add_points load_game change_rating next
+                 set_result],
     'point_type' => %w[score fouls pending_fouls],
     'sure' => [false, true]
   }
@@ -83,7 +84,7 @@ task start: :environment do
     keyboard = []
     user_buttons = []
     if game.players.count < 12
-      User.available(game).order(:surname).each do |user|
+      User.online.available(game).order(:surname).each do |user|
         user_buttons += [button(user.to_s, new_query.merge('user_id' => user.id))]
       end
     end
@@ -114,9 +115,9 @@ task start: :environment do
     button('Обновить', 'game_id' => game.id)
   end
 
-    def next_button(game = Game.last)
-      button('Далее', 'task' => 'next','game_id' => game.id)
-    end
+  def next_button(game = Game.last)
+    button('Далее', 'task' => 'next', 'game_id' => game.id)
+  end
 
   def edit_message(text, keyboard, message, bot)
     markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
@@ -129,6 +130,7 @@ task start: :environment do
 
   Telegram::Bot::Client.run(token) do |bot|
     bot.listen do |message|
+      begin
       case message
       when Telegram::Bot::Types::CallbackQuery
         # Here you can handle your callbacks from inline buttons
@@ -136,6 +138,7 @@ task start: :environment do
         query = decode(message.data)
         dbg = query.merge('dbg' => true)
         Rails.logger.info dbg
+        text_message = ''
         keyboard = [[]]
         if query['task'] == 'load_game'
           keyboard += unfinished_games_kbr
@@ -156,7 +159,6 @@ task start: :environment do
         else
           @game = Game.find(query['game_id'])
         end
-        text_message = 'id игры: ' + @game.id.to_s + '. Рейтинговая: '+ @game.rating.to_s+"\n"
         case query['task']
         when 'change_rating'
           @game.change_rating
@@ -166,12 +168,12 @@ task start: :environment do
           @game.delete
           edit_message(text_message, keyboard, message, bot)
           next
-        when 'start_game', 'end_game', 'count_result', 'next'
+        when 'start_game', 'end_game', 'next'
           @game.next!
         when 'add_points'
           if query['position'].nil?
             keyboard = player_list_kbr(@game, query)
-            text_message += @game.players.to_str
+            text_message += @game.to_s
             edit_message(text_message, keyboard, message, bot)
             next
           else
@@ -188,40 +190,48 @@ task start: :environment do
             end
           end
         when 'add_player'
-          if @game.players.map(&:user_id).include?(query['user_id']) || @game.players.count > 11
-            next
-          else
-            @game.players.create(user_id: query['user_id'])
-          end
+          next if @game.players.map(&:user_id).include?(query['user_id']) || @game.players.count > 11
+          @game.players.create(user_id: query['user_id'])
         when 'delete_last'
           @game.delete_last
         when 'randomize'
           @game.randomize
+        when 'set_result'
+          @game.set_result(query['value'])
         end
         case @game.aasm_state
         when 'settings'
-          text_message += "В данный момент игра "
-          text_message += "не " unless @game.rating
-          text_message += "рейтинговая. Изменить?"
-          keyboard = [button('Изменить', 'task' => 'change_rating', 'game_id' => @game.id)]+[next_button(@game)]
+          text_message = @game.to_s
+          keyboard = [button('Изменить рейтинговость', 'task' => 'change_rating', 'game_id' => @game.id)] + [next_button(@game)]
         when 'select_players'
           keyboard = available_players_kbr(@game)
-          text_message += @game.players.to_str
+          text_message = @game.to_s
         when 'game'
-          keyboard += [fouls_button(@game)] + [button('Подсчёт очков', 'task' => 'count_result', 'game_id' => @game.id)]
-          text_message += @game.players.to_str('fouls' => true)
-        when 'count_result'
+          keyboard += [fouls_button(@game)]
+          keyboard += [button('Игра завершена', 'task' => 'next', 'sure' => false, 'game_id' => @game.id)]
+          text_message = @game.to_s('fouls' => true)
+        when 'set_result'
+          keyboard += [button('Победили красные', 'task' => 'set_result', 'value' => 1, 'game_id' => @game.id)]
+          keyboard += [button('Ничья', 'task' => 'set_result', 'value' => 0, 'game_id' => @game.id)]
+          keyboard += [button('Победили чёрный', 'task' => 'set_result', 'value' => -1, 'game_id' => @game.id)]
+          keyboard += [next_button(@game)] unless @game.result.nil?
+          text_message += @game.to_s('result' => true)
+        when 'set_score'
           keyboard += ([score_button(@game)] + [pending_fouls_button(@game)])
-          keyboard += [button('Подвести результаты', 'task' => 'end_game', 'game_id' => @game.id)]
-          text_message += @game.players.to_str('score' => true)
+          keyboard += [button('Подвести результаты', 'task' => 'end_game', 'sure' => 'no', 'game_id' => @game.id)]
+          text_message = @game.to_s('score' => true)
         when 'game_over'
-          text_message += @game.players.to_str('score' => true)
+          text_message = @game.to_s('score' => true)
         end
         edit_message(text_message, keyboard + [delete_button(@game)], message, bot)
+
       when Telegram::Bot::Types::Message
         markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: [button('New game', 'task' => 'new_game'), button('Load game', 'task' => 'load_game')])
         bot.api.send_message(chat_id: message.chat.id, text: 'Main menu', reply_markup: markup)
       end
+    rescue
+      next
+    end
     end
   end
 end

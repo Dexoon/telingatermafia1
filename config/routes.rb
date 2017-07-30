@@ -3,6 +3,10 @@ Rails.application.routes.draw do
   resources :games
   resources :users
 
+  root 'games#root'
+  
+  get '/root', to: 'games#root'
+
   get '/user', to: 'users#user'
   get '/change_status', to: 'users#change_status'
   get '/online_list', to: 'users#online_list'

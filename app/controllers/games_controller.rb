@@ -1,6 +1,10 @@
 class GamesController < ApplicationController
   before_action :set_game, only: %i[show edit update destroy]
 
+  def root
+    @games=Game.all.order('rating DESC').order('day DESC')
+    @users=User.all.sort_by{|user| -user.players.map(&:score).sum}
+  end
 
   def start_game
     ids = params[:ids].split(',')

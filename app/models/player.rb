@@ -12,6 +12,7 @@ class Player < ApplicationRecord
   #  end
   def to_s(options = {})
     options.reverse_merge!(
+      'show_zero_score' => true,
       'position' => true,
       'position_roman' => false,
       'fouls' => false,
@@ -26,7 +27,13 @@ class Player < ApplicationRecord
                position.to_s + ' '
              end
     end
-    str += score.to_s + ' ' if options['score']
+    if options['score']
+      str += if options['show_zero_score'] || !score.zero?
+               score.to_s + ' '
+             else
+               '  '
+             end
+    end
     str += user.to_s(options)
     fouls.times { str += fouls_char } if options['fouls']
     str

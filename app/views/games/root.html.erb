@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <title>Результаты игр в «Мафию»</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <style type="text/css">
+      div,
+      li,
+      ul,
+      p {
+        margin: 0;
+        padding: 0
+      }
+
+      li {
+        list-style: none
+      }
+
+      body {
+        font: 12px Verdana;
+        color: #222;
+        margin: 0 auto
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-size: 100%;
+        margin: 0;
+        font-weight: normal
+      }
+
+      h1 {
+        font-size: 200%;
+        color: #A30000
+      }
+
+      h2 {
+        font-size: 150%;
+        color: #A30000
+      }
+
+      .b-games-li {
+        display: inline-block;
+        vertical-align: top;
+        width: 200px;
+        margin: 10px;
+        padding: 10px 15px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #eee #ccc #ccc #eee;
+      }
+
+      .b-games-li h2 {
+        margin-bottom: .1em
+      }
+
+      .b-games-li-date {
+        margin-bottom: .5em;
+        color: #666
+      }
+
+      .b-games-li-comment {
+        margin-bottom: .5em;
+        color: #999;
+        font-size: 80%
+      }
+
+      .b-games-li-players {
+        margin-top: 10px
+      }
+
+      .b-games-li-player {
+        margin-right: 10px;
+        position: relative;
+        padding-bottom: 5px;
+        font-size: 85%
+      }
+
+      .b-games-li-points {
+        position: absolute;
+        top: 0;
+        right: -10px;
+        font-weight: bold;
+        color: #A30000
+      }
+
+      .b-final,
+      .b-rating {
+        max-width: 400px;
+        width: 100%;
+        margin: 10px;
+        padding: 10px 15px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: #eee #ccc #ccc #eee;
+        font-size: 90%;
+        background: #fffff7;
+        float: left;
+      }
+
+      .b-rating-table {
+        margin-top: 1em;
+        border-collapse: collapse;
+        border-spacing: 0;
+      }
+
+      .b-rating th {
+        padding: 0 0 3px 5px;
+        text-align: left;
+        color: #999;
+        font-size: 90%
+      }
+
+      .b-rating td {
+        padding: 3px 0 3px 0;
+        text-align: right
+      }
+
+      .b-rating td.b-rating-name {
+        text-align: left;
+        padding-right: 10px
+      }
+
+      .b-rating td.b-rating-rating {
+        font-weight: bold;
+        padding-right: 0;
+        color: #222
+      }
+
+      .b-rating td.b-rating-row {
+        font-size: 80%;
+        padding-right: 10px
+      }
+
+      .b-rating-player__1 td.b-rating-rating {
+        color: #c70
+      }
+
+      .b-rating-player__2 td.b-rating-rating {
+        color: #aaa
+      }
+
+      .b-rating-player__3 td.b-rating-rating {
+        color: #960
+      }
+
+      .b-show-all {
+        text-align: center;
+        border: 1px solid #f0f0f0;
+        margin: 5px 0
+      }
+
+      .b-show-all:hover {
+        background: #f0f0f0
+      }
+
+      .b-show-all-link {
+        display: block;
+        width: 100%;
+        color: #A30000;
+        padding: 3px 0
+      }
+    </style>
+  </head>
+  <body>
+    <div style="clear:both"></div>
+    <li class=b-games-li>
+      <ul class="b-games-li-players">
+        <% @users.each do |user|%>
+          <li class="b-games-li-player"><%=user.to_s%>
+            <p class="b-games-li-points"><%=user.players.map(&:score).sum unless user.players.map(&:score).sum.zero?%></p>
+          </li>
+        <% end %>
+      </ul>
+    </li>
+    <div style="clear:both"></div>
+    <% @games.each do |game|%>
+      <li class=b-games-li>
+        <p class="b-games-li-date"><%= game.day.to_s(:short)%></p>
+        <ul class="b-games-li-players">
+          <%game.players.sort_by{|player| -player.score}.each do |player|%>
+            <li class="b-games-li-player"><%=player.user.to_s%>
+              <p class="b-games-li-points"><%=player.score unless player.score.zero?%></p>
+            </li>
+          <% end %>
+        </ul>
+      </li>
+    <% end %>
+  </body>
+</html>
