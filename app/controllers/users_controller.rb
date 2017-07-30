@@ -16,6 +16,15 @@ class UsersController < ApplicationController
     render json: @user, status: 200
   end
 
+  def self.change_online_status(user)
+    if user.nil?
+      str = 'Пользователь не зарегестрирован. Напишите Илье, он вас зарегистрирует'
+    else
+      str = user.change_online_status
+    end
+    str
+  end
+
   # GET /users
   # GET /users.json
   def index

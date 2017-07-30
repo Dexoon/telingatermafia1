@@ -60,4 +60,14 @@ class Integer
       res << roman * whole_part
     end
   end
+
+  def to_circled
+    to_s.tr('0123456789', '⓪①②③④⑤⑥⑦⑧⑨')
+  end
+end
+
+class String
+  def nest(char = '`')
+    char + self + char
+  end
 end

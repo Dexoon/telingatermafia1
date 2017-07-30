@@ -16,7 +16,7 @@ class Game < ApplicationRecord
     state :game_over
     event :next do
       transitions from: :settings, to: :select_players
-      transitions from: :select_players, to: :game, after: :set_pending_fouls
+      transitions from: :select_players, to: :game, after: %i[set_pending_fouls notify]
       transitions from: :game, to: :set_result
       transitions from: :set_result, to: :set_score
       transitions from: :set_score, to: :game_over
@@ -38,7 +38,8 @@ class Game < ApplicationRecord
       'result' => false,
       'id' => true,
       'rating' => true,
-      'order_players' => 'position'
+      'order_players' => 'position',
+      'bold' => nil
     )
     str = ''
     str += day.to_s(options['day_format']) + "\n" if options['day']
@@ -61,13 +62,22 @@ class Game < ApplicationRecord
     if options['players']
       case options['order_players']
       when 'score'
-        players.sort_by { |player| - player.score }.each { |player| str += player.to_s(options) + "\n" }
+        ordered_players = players.sort_by { |player| - player.score }
       else
-        players.order(options['order_players']).each { |player| str += player.to_s(options) + "\n" }
+        ordered_players = players.order(options['order_players'])
+      end
+      ordered_players.each do |player|
+        str += if player.position == option['bold']
+                 player.to_s(options).nest('**') + "\n"
+               else
+                 player.to_s(options) + "\n"
+               end
       end
     end
     str
   end
+
+  def notify; end
 
   def set_pending_fouls
     players.each do |player|

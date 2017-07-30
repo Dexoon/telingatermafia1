@@ -84,7 +84,7 @@ task start: :environment do
     keyboard = []
     user_buttons = []
     if game.players.count < 12
-      User.online.available(game).order(:surname).each do |user|
+      User.available(game).order(:surname).each do |user|
         user_buttons += [button(user.to_s, new_query.merge('user_id' => user.id))]
       end
     end
@@ -122,9 +122,9 @@ task start: :environment do
   def edit_message(text, keyboard, message, bot)
     markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
     if text != message.message.text
-      bot.api.editMessageText(text: text, chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: markup)
+      bot.api.editMessageText(text: text, chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: markup, parse_mode: 'Markdown')
     else
-      bot.api.editMessageReplyMarkup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: markup)
+      bot.api.editMessageReplyMarkup(chat_id: message.message.chat.id, message_id: message.message.message_id, reply_markup: markup, parse_mode: 'Markdown')
     end
   end
 
@@ -227,7 +227,7 @@ task start: :environment do
 
       when Telegram::Bot::Types::Message
         markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: [button('New game', 'task' => 'new_game'), button('Load game', 'task' => 'load_game')])
-        bot.api.send_message(chat_id: message.chat.id, text: 'Main menu', reply_markup: markup)
+        bot.api.send_message(chat_id: message.chat.id, text: 'Main menu', reply_markup: markup, parse_mode: 'Markdown')
       end
     rescue
       next

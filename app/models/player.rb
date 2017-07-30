@@ -16,22 +16,23 @@ class Player < ApplicationRecord
       'position' => true,
       'position_roman' => false,
       'fouls' => false,
-      'score' => false
+      'score' => false,
+      'nest' => true
     )
     fouls_char = '|'
     str = ''
+    if options['score']
+      str += if options['show_zero_score'] || !score.zero?
+               (score.to_circled + ' ').nest
+             else
+               '  '.nest
+             end
+    end
     if options['position']
       str += if options['position_roman']
                position.to_roman + ' '
              else
                position.to_s + ' '
-             end
-    end
-    if options['score']
-      str += if options['show_zero_score'] || !score.zero?
-               score.to_s + ' '
-             else
-               '  '
              end
     end
     str += user.to_s(options)
