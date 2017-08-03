@@ -87,6 +87,7 @@ GEM
       faraday_middleware
       multi_json
     ffi (1.9.18)
+    gemoji (3.0.0)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
     hashie (3.5.6)
@@ -247,6 +248,7 @@ DEPENDENCIES
   byebug
   capybara (~> 2.13)
   coffee-rails (~> 4.2)
+  gemoji
   jbuilder (~> 2.5)
   json
   listen (>= 3.0.5, < 3.2)

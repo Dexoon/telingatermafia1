@@ -21,6 +21,8 @@ gem 'uglifier', '>= 1.3.0'
 
 gem 'aasm'
 
+gem 'gemoji'
+
 gem 'passenger'
 
 gem 'acts_as_list'

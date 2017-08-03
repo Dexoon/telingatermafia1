@@ -20,16 +20,27 @@ class Player < ApplicationRecord
       'nest' => true,
       'role' => true
     )
-    role_emoji={
+    role_emoji = {
       'don' => '👆🏻',
       'mafia' => '👎🏻',
       'putain' => '🤘🏻',
-      'citizen' => '👍🏻' ,
+      'citizen' => '👍🏻',
       'doctor' => '🤞🏻',
       'maniac' => '✊🏻',
       'comissar' => '👌🏻',
       nil => ''
     }
+    role_emoji = {
+      'don' => Emoji.find_by_alias('rose').raw,
+      'mafia' => '👎🏻',
+      'putain' => Emoji.find_by_alias('kiss').raw,
+      'citizen' => '      '.nest,
+      'doctor' => '🤞🏻',
+      'maniac' => Emoji.find_by_alias('dagger').raw,
+      'comissar' => '👌🏻',
+      nil => ''
+    }
+    # Emoji.find_by_unicode("\u{1f91e}").raw
     fouls_char = '|'
     pending_fouls_char = 'x'
     str = ''
@@ -50,7 +61,7 @@ class Player < ApplicationRecord
     end
     str += user.to_s(options)
     if options['fouls']
-      if game.aasm_state=='game'
+      if game.aasm_state == 'game'
         fouls.times { str += fouls_char }
       else
         user.pending_fouls.times { str += pending_fouls_char }
@@ -71,7 +82,7 @@ class Player < ApplicationRecord
   def add_points(category = 'score', value)
     case category
     when 'fouls'
-      if self.game.aasm_state == 'game_over' || self.game.aasm_state == 'set_score' || self.game.aasm_state == 'set_result'
+      if game.aasm_state == 'game_over' || game.aasm_state == 'set_score' || game.aasm_state == 'set_result'
         user.add_points('pending_fouls', value)
       elsif value < 0
         update(fouls: [0, fouls + value].max)
