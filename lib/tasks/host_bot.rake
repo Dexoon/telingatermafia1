@@ -15,7 +15,10 @@ task start: :environment do
 
   Telegram::Bot::Client.run(token) do |bot|
     bot.listen do |message|
-      next if ENV['NEXT']
+      if ENV['NEXT']
+        next
+        puts 'try'
+      end
       # begin
       case message
       when Telegram::Bot::Types::CallbackQuery

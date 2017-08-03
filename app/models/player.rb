@@ -17,8 +17,19 @@ class Player < ApplicationRecord
       'position_roman' => false,
       'fouls' => false,
       'score' => false,
-      'nest' => true
+      'nest' => true,
+      'role' => true
     )
+    role_emoji={
+      'don' => '👆🏻',
+      'mafia' => '👎🏻',
+      'putain' => '🤘🏻',
+      'citizen' => '👍🏻' ,
+      'doctor' => '🤞🏻',
+      'maniac' => '✊🏻',
+      'comissar' => '👌🏻',
+      nil => ''
+    }
     fouls_char = '|'
     pending_fouls_char = 'x'
     str = ''
@@ -29,6 +40,7 @@ class Player < ApplicationRecord
                '  '.nest
              end
     end
+    str += role_emoji[role] if options['role']
     if options['position']
       str += if options['position_roman']
                position.to_roman + ' '
@@ -41,7 +53,9 @@ class Player < ApplicationRecord
       if game.aasm_state=='game'
         fouls.times { str += fouls_char }
       else
-        user.pending_fouls.times { str += pending_fouls_char } 
+        user.pending_fouls.times { str += pending_fouls_char }
+      end
+    end
     str
   end
 

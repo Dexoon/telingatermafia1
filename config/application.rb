@@ -76,8 +76,9 @@ class String
     query_types = {
       'task' => %w[start_game end_game set_result delete_game delete_last randomize
                    add_player new_game add_points load_game change_rating next
-                   set_result game_over],
+                   set_result game_over set_game set_role],
       'point_type' => %w[score fouls pending_fouls],
+      'role' => %w[don mafia putain doctor maniac citizen comissar],
       'sure' => [false, true]
     }
     encode_hash = {}
@@ -104,8 +105,9 @@ class Hash
     query_types = {
       'task' => %w[start_game end_game set_result delete_game delete_last randomize
                    add_player new_game add_points load_game change_rating next
-                   set_result game_over],
+                   set_result game_over set_game set_role],
       'point_type' => %w[score fouls pending_fouls],
+      'role' => %w[don mafia putain doctor maniac citizen comissar],
       'sure' => [false, true]
     }
     encode_hash = {}

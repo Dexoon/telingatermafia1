@@ -21,7 +21,7 @@ class GamesController < ApplicationController
     end
     @game = Game.new
     @game.save
-    ids.each { |x| @game.players.create(user_id: x) }
+    ids.each { |x| @game.players.create(user_id: x, role: 'citizen') }
     msg = { game: @game, player_ids: @game.players.ids }
     render json: msg, status: 200
   end
@@ -42,7 +42,7 @@ class GamesController < ApplicationController
   end
 
   # GET /games/1/edit
-  #def edit; end
+  # def edit; end
 
   # POST /games
   # POST /games.json

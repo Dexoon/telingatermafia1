@@ -37,6 +37,7 @@ class Game < ApplicationRecord
       'day' => true,
       'day_format' => :short,
       'result' => false,
+      'fouls' => true,
       'id' => true,
       'rating' => true,
       'order_players' => 'position',
@@ -150,12 +151,14 @@ class Game < ApplicationRecord
       send(query['task'])
     when 'start_game', 'game_over', 'next', 'end_game'
       next!
+    when 'set_role'
+      players[query['position'] - 1].update(role: query['role'])
     when 'add_points'
       players[query['position'] - 1].add_points(query['point_type'], query['value']) unless query['position'].nil?
     when 'add_player'
       return { result: 'fail', descripton: 'no spare seats' } if players.count > 11
       return { result: 'fail', descripton: 'user is on table' } if players.map(&:user_id).include?(query['user_id'])
-      players.create(user_id: query['user_id'])
+      players.create(user_id: query['user_id'], role: 'citizen')
     when 'set_result'
       set_result(query['value'])
     end

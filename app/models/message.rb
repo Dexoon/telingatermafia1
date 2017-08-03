@@ -8,7 +8,13 @@ class Message < ApplicationRecord
     state :remove_foul
     state :set_position
     state :set_value
+    state :role
     state :load_game
+    event :set_role do
+      transitions to: :set_position, unless: :position_set?, success: :view
+      transitions to: :role, unless: :role_set?, success: :view
+      transitions to: :game, success: :touch
+    end
     event :add_points do
       transitions to: :set_position, unless: :position_set?, success: :view
       transitions to: :set_value, unless: :value_set?, success: :view
@@ -26,6 +32,9 @@ class Message < ApplicationRecord
     event :load_game, success: :view do
       transitions from: :main_menu, to: :load_game
     end
+    event :set_game, after: :game_define do
+      transitions to: :game
+    end
     event :back, success: :view do
       transitions from: :load_game, to: :main_menu
       transitions to: :game,  guard: :game_set?
@@ -37,6 +46,14 @@ class Message < ApplicationRecord
     !game_id.nil?
   end
 
+  def game_define(query)
+    update(game_id: query['game_id'])
+    view
+  end
+
+    def role_set?(query)
+      !query['role'].nil?
+    end
   def position_set?(query)
     !query['position'].nil?
   end
@@ -49,7 +66,10 @@ class Message < ApplicationRecord
     res = game.touch(query)
     puts 'result: ' + res[:result]
     return false if res[:result] == 'fail'
-    view
+    game.messages.each do |msg|
+      puts 'View:' + msg.id.to_s
+      msg.view({}, @bot)
+    end
   end
 
   def abandon_game
@@ -57,12 +77,12 @@ class Message < ApplicationRecord
     view
   end
 
-  def edit(text, keyboard)
+  def edit(text, keyboard, bot = @bot)
     markup = Telegram::Bot::Types::InlineKeyboardMarkup.new(inline_keyboard: keyboard)
 
-    @bot.api.editMessageText(text: text, chat_id: chat_id,
-                             message_id: message_id, reply_markup: markup,
-                             parse_mode: 'Markdown')
+    bot.api.editMessageText(text: text, chat_id: chat_id,
+                            message_id: message_id, reply_markup: markup,
+                            parse_mode: 'Markdown')
   end
 
   def process_query(query = {}, bot = @bot)
@@ -76,17 +96,16 @@ class Message < ApplicationRecord
     end
     puts 'f' + query['task'] unless query['task'].nil?
     case query['task']
-    when 'new_game', 'load_game', 'back', 'add_points', 'delete_game'
+    when 'new_game', 'load_game', 'back', 'add_points', 'delete_game', 'set_game', 'set_role'
       puts 'here we are'
       send(query['task'] + '!', query)
     else
-      unless game_id.nil?
-        res = game.touch(query)
-        puts 'result: ' + res[:result]
-        puts 'description: ' + res[:descripton] if res[:result] == 'fail'
-        return false if res[:result] == 'fail'
+      if game_id.nil?
+        view(query)
+      else
+        res = touch(query)
+        # return false if res[:result] == 'fail'
       end
-      view(query)
     end
     puts 'we\'re here'
   end
@@ -114,7 +133,9 @@ class Message < ApplicationRecord
   end
 
   def points_btns(query, range = (-1..4), width = 4)
-    buttons = []
+    puts query
+
+  buttons = []
     range.to_a.each do |x|
       buttons += [button(x.to_s, query.merge('value' => x))]
     end
@@ -124,7 +145,7 @@ class Message < ApplicationRecord
   def games_btns(games = Game.where.not(aasm_state: 'game_over'), width = 4)
     buttons = []
     games.each do |game|
-      buttons += [button("id: #{game.id}", 'game_id' => game.id)]
+      buttons += [button("id: #{game.id}", 'task' => 'set_game', 'game_id' => game.id)]
     end
     buttons.to_2_dim(width)
   end
@@ -138,11 +159,28 @@ class Message < ApplicationRecord
     buttons.to_2_dim(width)
   end
 
+  def choose_role(query = {}, roles = %w[don mafia putain doctor maniac comissar citizen], width = 2)
+    puts query
+    buttons = []
+    roles.each do |role|
+      buttons += [button(role, query.merge('role' => role))]
+    end
+    buttons.to_2_dim(width)
+  end
+
   $buttons_queries = {
     'next' => ['Далее', { 'task' => 'next' }],
     'back' => ['Назад', { 'task' => 'back' }],
     'refresh' => ['Обновить', {}],
     'score' => ['Балл', { 'task' => 'add_points', 'point_type' => 'score' }],
+    'set_role' => ['Установить роль', { 'task' => 'set_role' }],
+    'don' => ['Дон', { 'role' => 'don' }],
+    'mafia' => ['Мафия', { 'role' => 'mafia' }],
+    'putain' => ['Путана', { 'role' => 'putain' }],
+    'citizen' => ['Мирный', { 'role' => 'citizen' }],
+    'doctor' => ['Доктор', { 'role' => 'doctor' }],
+    'maniac' => ['Маньяк', { 'role' => 'maniac' }],
+    'comissar' => ['Комиссар', { 'role' => 'comissar' }],
     'foul' => ['Фол', { 'task' => 'add_points', 'point_type' => 'fouls', 'value' => 1 }],
     'remove_foul' => ['Убрать фол', { 'task' => 'add_points', 'point_type' => 'fouls', 'value' => -1 }],
     'delete_game' => ['Удалить игру', { 'task' => 'delete_game', 'sure' => false }],
@@ -166,6 +204,8 @@ class Message < ApplicationRecord
       users_btns(query)
     when 'unfinished_games'
       games_btns
+    when 'choose_role'
+      choose_role(@query)
     when 'add_score'
       points_btns(@query, (-3..4))
     when 'set_position'
@@ -184,7 +224,7 @@ class Message < ApplicationRecord
     end
   end
 
-  def view(query = {})
+  def view(query = {}, bot = @bot)
     keyboard = []
     puts 'state:' + aasm_state
     case aasm_state
@@ -201,6 +241,9 @@ class Message < ApplicationRecord
     when 'set_value'
       text = game.players[query['position'] - 1].to_s
       keyboard += [['add_score']]
+    when 'role'
+      text = 'Выберите роль'
+      keyboard += [['choose_role']]
     else
       puts 'game_id:' + game_id.to_s unless game_id.nil?
       case game.aasm_state
@@ -215,6 +258,7 @@ class Message < ApplicationRecord
         keyboard += [['start_game'], ['randomize']] if game.players.count == 12
         text = game.to_s
       when 'game'
+        keyboard += [['set_role']]
         keyboard += [['game_over']]
         text = game.to_s('fouls' => true)
       when 'set_result'
@@ -227,8 +271,8 @@ class Message < ApplicationRecord
       when 'game_over'
         text = game.to_s('score' => true)
       end
-      keyboard += [['foul']] unless query['point_type'] == 'foul' || game.aasm_state == 'settings' || game.aasm_state == 'select_players' || game.aasm_state.nil?
-      keyboard += [['delete_game']] unless game.aasm_state.nil?
+      keyboard += [['foul']] unless query['point_type'] == 'foul' || ['game_over', 'settings', 'select_players', nil].include?(game.aasm_state)
+      # keyboard += [['delete_game']] unless game.aasm_state.nil?
     end
     keys = [[]]
     keyboard.each do |line|
@@ -239,6 +283,6 @@ class Message < ApplicationRecord
     # keyboard.map do |line|
     #  keys += [button_by_name(line)] unless line.nil? ||line==''
     # end
-    edit(text, keys)
+    edit(text, keys, bot)
   end
 end
