@@ -20,6 +20,7 @@ class Player < ApplicationRecord
       'nest' => true
     )
     fouls_char = '|'
+    pending_fouls_char = 'x'
     str = ''
     if options['score']
       str += if options['show_zero_score'] || !score.zero?
@@ -36,7 +37,11 @@ class Player < ApplicationRecord
              end
     end
     str += user.to_s(options)
-    fouls.times { str += fouls_char } if options['fouls']
+    if options['fouls']
+      if game.aasm_state=='game'
+        fouls.times { str += fouls_char }
+      else
+        user.pending_fouls.times { str += pending_fouls_char } 
     str
   end
 
@@ -52,7 +57,9 @@ class Player < ApplicationRecord
   def add_points(category = 'score', value)
     case category
     when 'fouls'
-      if value < 0
+      if self.game.aasm_state == 'game_over' || self.game.aasm_state == 'set_score' || self.game.aasm_state == 'set_result'
+        user.add_points('pending_fouls', value)
+      elsif value < 0
         update(fouls: [0, fouls + value].max)
       else
         update(fouls: [4, fouls + value].min)

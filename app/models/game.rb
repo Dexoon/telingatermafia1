@@ -1,7 +1,7 @@
 class Game < ApplicationRecord
   has_one :Host
   has_many :players, -> { order(position: :asc) }
-
+  has_many :messages
   before_create do
     self.day = (Time.now - 3 * 60 * 60).to_date unless day
   end
@@ -16,10 +16,11 @@ class Game < ApplicationRecord
     state :game_over
     event :next do
       transitions from: :settings, to: :select_players
-      transitions from: :select_players, to: :game, after: %i[set_pending_fouls notify]
+      transitions from: :select_players, to: :game, after: %i[set_pending_fouls]
       transitions from: :game, to: :set_result
       transitions from: :set_result, to: :set_score
       transitions from: :set_score, to: :game_over
+      transitions from: :game_over, to: :game_over
     end
     event :back do
       transitions from: :select_players, to: :settings
@@ -67,7 +68,7 @@ class Game < ApplicationRecord
         ordered_players = players.order(options['order_players'])
       end
       ordered_players.each do |player|
-        str += if player.position == option['bold']
+        str += if player.position == options['bold']
                  player.to_s(options).nest('**') + "\n"
                else
                  player.to_s(options) + "\n"
@@ -77,7 +78,11 @@ class Game < ApplicationRecord
     str
   end
 
-  def notify; end
+  def notify
+    players.each do |player|
+      player.user.write_message(to_s('bold' => player.position))
+    end
+  end
 
   def set_pending_fouls
     players.each do |player|
@@ -106,12 +111,17 @@ class Game < ApplicationRecord
   end
 
   def delete
+    messages.each { |msg| msg.update(game_id: nil) }
     players.map(&:delete)
     destroy
   end
 
   def add_player(identity)
-    players.create(user_id: identity) if players.find_by(user_id: identity).nil?
+    if players.find_by(user_id: identity).nil?
+      players.create(user_id: identity)
+    else
+      false
+    end
   end
 
   def randomize
@@ -132,5 +142,23 @@ class Game < ApplicationRecord
 
   def delete_last
     players.last.delete unless players.count.zero?
+  end
+
+  def touch(query)
+    case query['task']
+    when 'change_rating', 'delete', 'delete_last', 'randomize'
+      send(query['task'])
+    when 'start_game', 'game_over', 'next', 'end_game'
+      next!
+    when 'add_points'
+      players[query['position'] - 1].add_points(query['point_type'], query['value']) unless query['position'].nil?
+    when 'add_player'
+      return { result: 'fail', descripton: 'no spare seats' } if players.count > 11
+      return { result: 'fail', descripton: 'user is on table' } if players.map(&:user_id).include?(query['user_id'])
+      players.create(user_id: query['user_id'])
+    when 'set_result'
+      set_result(query['value'])
+    end
+    { result: 'ok' }
   end
 end

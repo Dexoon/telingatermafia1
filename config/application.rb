@@ -70,4 +70,57 @@ class String
   def nest(char = '`')
     char + self + char
   end
+
+  def decode
+    key_list = %w[game_id user_id value position]
+    query_types = {
+      'task' => %w[start_game end_game set_result delete_game delete_last randomize
+                   add_player new_game add_points load_game change_rating next
+                   set_result game_over],
+      'point_type' => %w[score fouls pending_fouls],
+      'sure' => [false, true]
+    }
+    encode_hash = {}
+    query_types.each do |query_type, array_of_values|
+      key_list += [query_type]
+      encode_hash[query_type] = {}
+      array_of_values.each_with_index { |value, index| encode_hash[query_type][value] = index }
+    end
+    decode_hash = {}
+    encode_hash.each { |key, value| decode_hash[key] = value.invert }
+    query = {}
+    split(',').map { |x| x == '' ? x.squeeze! : x.to_i }.each_with_index do |value, i|
+      unless value.nil?
+        query[key_list[i]] = decode_hash[key_list[i]].nil? ? value : decode_hash[key_list[i]][value]
+      end
+    end
+    query
+  end
+end
+
+class Hash
+  def encode
+    key_list = %w[game_id user_id value position]
+    query_types = {
+      'task' => %w[start_game end_game set_result delete_game delete_last randomize
+                   add_player new_game add_points load_game change_rating next
+                   set_result game_over],
+      'point_type' => %w[score fouls pending_fouls],
+      'sure' => [false, true]
+    }
+    encode_hash = {}
+    query_types.each do |query_type, array_of_values|
+      key_list += [query_type]
+      encode_hash[query_type] = {}
+      array_of_values.each_with_index { |value, index| encode_hash[query_type][value] = index }
+    end
+    str = ''
+    key_list.each do |key|
+      unless self[key].nil?
+        str += encode_hash[key].nil? ? self[key].to_s : encode_hash[key][self[key]].to_s
+      end
+      str += ','
+    end
+    str.chomp(',')
+  end
 end

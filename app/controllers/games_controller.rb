@@ -1,9 +1,15 @@
 class GamesController < ApplicationController
   before_action :set_game, only: %i[show edit update destroy]
 
+  def self.BotQuery(query)
+    @game = query[:game]
+    @game.touch(query)
+    @game.respond(query)
+  end
+
   def root
-    @games=Game.all.order('rating DESC').order('day DESC')
-    @users=User.all.sort_by{|user| -user.players.map(&:score).sum}
+    @games = Game.all.order('rating DESC').order('day DESC')
+    @users = User.all.sort_by { |user| -user.players.map(&:score).sum }
   end
 
   def start_game
@@ -36,7 +42,7 @@ class GamesController < ApplicationController
   end
 
   # GET /games/1/edit
-  def edit; end
+  #def edit; end
 
   # POST /games
   # POST /games.json
